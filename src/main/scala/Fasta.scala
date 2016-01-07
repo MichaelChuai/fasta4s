@@ -31,13 +31,15 @@ class Fasta {
   // one based
   def apply(chr: String)(start: Int, end: Int)(implicit posStrand: Boolean = true) = {
     if (! gdxMap.contains(chr)) throw new NoSuchElementException(s"$chr not exist in this genome")
-    val maxLen = gdxMap(chr)(1) - gdxMap(chr)(0)
-    val demandLen = if (end >= start) end - start + 1 else 0
-    val curLen = if (maxLen > demandLen) demandLen else maxLen
+    if (start < 1) throw new IndexOutOfBoundsException(s"start: $start must >= 1")
+    val startPoint = start
+    val maxEnd = gdxMap(chr)(1) - gdxMap(chr)(0)
+    val endPoint = if (end > maxEnd) maxEnd else end
+    val demandLen = if (endPoint >= startPoint) endPoint - startPoint + 1 else 0
     val from = gdxMap(chr)(0) + start - 1
-    if (posStrand) _extractSeq(from, curLen)
+    if (posStrand) _extractSeq(from, demandLen)
     else {
-      _extractSeq(from, curLen).map(Fasta.ComplementCode(_)).reverse
+      _extractSeq(from, demandLen).map(Fasta.ComplementCode(_)).reverse
     }
   }
 
