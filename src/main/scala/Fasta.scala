@@ -17,7 +17,7 @@ class Fasta {
   private var faFileName: String = ""
   private var flatFileName: String = ""
   private var gdxFileName: String = ""
-  private var gdxMap: Map[String, Array[Int]] = null
+  var gdxMap: Map[String, Array[Long]] = null
   private var flatFile: RandomAccessFile = null
   def this(fileName: String) = {
     this()
@@ -29,7 +29,7 @@ class Fasta {
   }
 
   // one based
-  def apply(chr: String)(start: Int, end: Int)(implicit posStrand: Boolean = true) = {
+  def apply(chr: String)(start: Long, end: Long)(implicit posStrand: Boolean = true) = {
     if (! gdxMap.contains(chr)) throw new NoSuchElementException(s"$chr not exist in this genome")
     if (start < 1) throw new IndexOutOfBoundsException(s"start: $start must >= 1")
     val startPoint = start
@@ -53,22 +53,22 @@ class Fasta {
     }
   }
 
-  def chromMap: Map[String, Int] = {
+  def chromMap: Map[String, Long] = {
     gdxMap map {
       case (k, v) =>
         (k, v(1) - v(0))
     }
   }
 
-  private def _extractSeq(from: Int, length: Int): String = {
+  private def _extractSeq(from: Long, length: Long): String = {
     flatFile.seek(from)
-    val c = for (i <- (1 to length).toIterator) yield flatFile.readUnsignedByte.toChar
+    val c = for (i <- (1L to length).toIterator) yield flatFile.readUnsignedByte.toChar
     c.mkString
   }
 
   private def _prepare(): Unit = {
     val gdxFile = new ObjectInputStream(new FileInputStream(gdxFileName))
-    gdxMap = gdxFile.readObject().asInstanceOf[Map[String, Array[Int]]]
+    gdxMap = gdxFile.readObject().asInstanceOf[Map[String, Array[Long]]]
     flatFile = new RandomAccessFile(flatFileName, "r")
   }
 
@@ -94,7 +94,7 @@ class Fasta {
 
   private def _genFlatAndGdx(): Unit = {
     val flatFile = new BufferedWriter(new FileWriter(flatFileName))
-    var gdxMap = MMap.empty[String, Array[Int]]
+    var gdxMap = MMap.empty[String, Array[Long]]
     var curHeader = "None"
     for (line <- Source.fromFile(faFileName).getLines if !line.trim.isEmpty) {
       line.trim match {
